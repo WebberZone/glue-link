@@ -1,0 +1,12 @@
+includes:
+	- phpstan-baseline.neon
+parameters:
+    level: 5
+    scanFiles:
+        - glue-link.php
+        - uninstall.php
+    scanDirectories:
+        - includes
+    paths:
+        - glue-link.php
+        - includes/

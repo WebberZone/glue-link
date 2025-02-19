@@ -1,0 +1,37 @@
+{
+    "name": "@webberzone/glue-link",
+    "version": "1.0.0",
+    "description": "Glue for Freemius and Kit",
+    "author": "WebberZone",
+    "license": "GPL-2.0-or-later",
+    "main": "index.js",
+    "scripts": {
+        "build": "wp-scripts build",
+        "format": "wp-scripts format",
+        "lint:css": "wp-scripts lint-style",
+        "lint:js": "wp-scripts lint-js",
+        "packages-update": "wp-scripts packages-update",
+        "start": "wp-scripts start",
+        "zip": "wp-scripts plugin-zip"
+    },
+    "files": [
+        "freemius-api",
+        "includes",
+        "uninstall.php",
+        "index.php",
+        "README.md",
+        "glue-link.php",
+        "phpcs.xml.dist",
+        "phpstan.neon.dist",
+        "phpstan-baseline.neon"
+    ],
+    "devDependencies": {
+        "@wordpress/prettier-config": "^4.18.0",
+        "@wordpress/scripts": "^30.11.0"
+    },
+    "dependencies": {
+        "@wordpress/icons": "^10.18.0",
+        "clsx": "^2.1.1",
+        "uuid": "^11.0.5"
+    }
+}

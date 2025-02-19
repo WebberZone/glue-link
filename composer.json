@@ -1,0 +1,52 @@
+{
+    "name": "webberzone/glue-link",
+    "description": "Glue for Freemius and Kit",
+    "type": "wordpress-plugin",
+    "keywords": [
+        "wordpress",
+        "plugin",
+        "freemius",
+        "kit",
+        "convertkit"
+    ],
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=7.4"
+    },
+    "authors": [
+        {
+            "name": "WebberZone"
+        }
+    ],
+    "require-dev": {
+        "szepeviktor/phpstan-wordpress": "^1",
+        "phpstan/extension-installer": "^1",
+        "phpstan/phpstan": "^1",
+        "php-stubs/wordpress-stubs": "^6",
+        "wp-coding-standards/wpcs": "^3",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1",
+        "phpcompatibility/phpcompatibility-wp": "^2",
+        "yoast/phpunit-polyfills": "^3",
+        "phpunit/phpunit": "^7.5 || ^8.5"
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "phpcbf": [
+            "vendor/bin/phpcbf -p -v -s --standard=phpcs.xml.dist $(find . -name '*.php')"
+        ],
+        "phpcs": [
+            "vendor/bin/phpcs -p -v -s --standard=phpcs.xml.dist $(find . -name '*.php')"
+        ],
+        "phpstan": [
+            "vendor/bin/phpstan analyse --memory-limit=2048M"
+        ],
+        "phpstan-baseline": [
+            "vendor/bin/phpstan analyse --memory-limit=2048M --generate-baseline"
+        ]
+    }
+}

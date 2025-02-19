@@ -1,0 +1,6 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Constant AUTH_SALT not found\\.$#"
+			count: 4
+			path: includes/class-options-api.php
