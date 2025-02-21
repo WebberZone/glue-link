@@ -87,12 +87,13 @@ class Core {
 				}
 
 				$plugin_configs[ $plugin['id'] ] = array(
-					'slug'           => sanitize_title( $plugin['name'] ),
-					'public_key'     => $plugin['public_key'],
-					'secret_key'     => $plugin['secret_key'],
-					'webhook_secret' => $plugin['secret_key'], // Using same secret key for webhook verification.
-					'form_id'        => $plugin['form_id'],
-					'tag_id'         => $plugin['tag_id'],
+					'slug'          => sanitize_title( $plugin['name'] ),
+					'public_key'    => $plugin['public_key'] ?? '',
+					'secret_key'    => $plugin['secret_key'] ?? '',
+					'free_form_ids' => $plugin['free_form_ids'] ?? '',
+					'free_tag_ids'  => $plugin['free_tag_ids'] ?? '',
+					'paid_form_ids' => $plugin['paid_form_ids'] ?? '',
+					'paid_tag_ids'  => $plugin['paid_tag_ids'] ?? '',
 				);
 			}
 		}

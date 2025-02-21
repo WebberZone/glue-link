@@ -279,64 +279,44 @@ class Settings {
 						'size'    => 'large',
 					),
 					array(
-						'id'               => 'free_form_id',
+						'id'               => 'free_form_ids',
 						'name'             => __( 'Free Form', 'glue-link' ),
 						'desc'             => __( 'Choose the form(s) for free subscribers. Begin typing to search.', 'glue-link' ),
 						'type'             => 'text',
 						'default'          => '',
 						'size'             => 'large',
 						'field_class'      => 'ts_autocomplete',
-						'field_attributes' => array(
-							'data-wp-prefix'   => 'GlueLink',
-							'data-wp-action'   => self::$prefix . '_kit_search',
-							'data-wp-nonce'    => wp_create_nonce( self::$prefix . '_kit_search' ),
-							'data-wp-endpoint' => 'forms',
-						),
+						'field_attributes' => self::get_kit_search_field_attributes( 'forms' ),
 					),
 					array(
-						'id'               => 'free_tag_id',
+						'id'               => 'free_tag_ids',
 						'name'             => __( 'Free Tag', 'glue-link' ),
 						'desc'             => __( 'Optionally, choose the tag(s) for free subscribers. Begin typing to search.', 'glue-link' ),
 						'type'             => 'text',
 						'default'          => '',
 						'size'             => 'large',
 						'field_class'      => 'ts_autocomplete',
-						'field_attributes' => array(
-							'data-wp-prefix'   => 'GlueLink',
-							'data-wp-action'   => self::$prefix . '_kit_search',
-							'data-wp-nonce'    => wp_create_nonce( self::$prefix . '_kit_search' ),
-							'data-wp-endpoint' => 'tags',
-						),
+						'field_attributes' => self::get_kit_search_field_attributes( 'tags' ),
 					),
 					array(
-						'id'               => 'paid_form_id',
+						'id'               => 'paid_form_ids',
 						'name'             => __( 'Paid Form', 'glue-link' ),
 						'desc'             => __( 'Choose the form(s) for paid subscribers. Begin typing to search.', 'glue-link' ),
 						'type'             => 'text',
 						'default'          => '',
 						'size'             => 'large',
 						'field_class'      => 'ts_autocomplete',
-						'field_attributes' => array(
-							'data-wp-prefix'   => 'GlueLink',
-							'data-wp-action'   => self::$prefix . '_kit_search',
-							'data-wp-nonce'    => wp_create_nonce( self::$prefix . '_kit_search' ),
-							'data-wp-endpoint' => 'forms',
-						),
+						'field_attributes' => self::get_kit_search_field_attributes( 'forms' ),
 					),
 					array(
-						'id'               => 'paid_tag_id',
+						'id'               => 'paid_tag_ids',
 						'name'             => __( 'Paid Tag', 'glue-link' ),
 						'desc'             => __( 'Choose the tag(s) for paid subscribers. Begin typing to search.', 'glue-link' ),
 						'type'             => 'text',
 						'default'          => '',
 						'size'             => 'large',
 						'field_class'      => 'ts_autocomplete',
-						'field_attributes' => array(
-							'data-wp-prefix'   => 'GlueLink',
-							'data-wp-action'   => self::$prefix . '_kit_search',
-							'data-wp-nonce'    => wp_create_nonce( self::$prefix . '_kit_search' ),
-							'data-wp-endpoint' => 'tags',
-						),
+						'field_attributes' => self::get_kit_search_field_attributes( 'tags' ),
 					),
 				),
 			),
@@ -394,12 +374,7 @@ class Settings {
 				'default'          => '',
 				'size'             => 'large',
 				'field_class'      => 'ts_autocomplete',
-				'field_attributes' => array(
-					'data-wp-prefix'   => 'GlueLink',
-					'data-wp-action'   => self::$prefix . '_kit_search',
-					'data-wp-nonce'    => wp_create_nonce( self::$prefix . '_kit_search' ),
-					'data-wp-endpoint' => 'forms',
-				),
+				'field_attributes' => self::get_kit_search_field_attributes( 'forms' ),
 			),
 			'kit_tag_id'     => array(
 				'id'               => 'kit_tag_id',
@@ -409,12 +384,7 @@ class Settings {
 				'default'          => '',
 				'size'             => 'large',
 				'field_class'      => 'ts_autocomplete',
-				'field_attributes' => array(
-					'data-wp-prefix'   => 'GlueLink',
-					'data-wp-action'   => self::$prefix . '_kit_search',
-					'data-wp-nonce'    => wp_create_nonce( self::$prefix . '_kit_search' ),
-					'data-wp-endpoint' => 'tags',
-				),
+				'field_attributes' => self::get_kit_search_field_attributes( 'tags' ),
 			),
 		);
 
@@ -437,32 +407,22 @@ class Settings {
 	 */
 	public static function settings_subscribers(): array {
 		$settings = array(
-			'subscribers'   => array(
+			'subscribers'     => array(
 				'id'   => 'subscribers',
 				'name' => __( 'Subscribers', 'glue-link' ),
 				'desc' => __( 'Configure your subscribers settings in this tab.', 'glue-link' ),
 				'type' => 'header',
 			),
-			'last_name'     => array(
-				'id'               => 'last_name',
+			'last_name_field' => array(
+				'id'               => 'last_name_field',
 				'name'             => __( 'Last Name field', 'glue-link' ),
-				'desc'             => __( 'Specify the field name for mapping the last name in Kit. Note: Kit lacks a default last name field; a custom field must be created in your account.', 'glue-link' ),
+				'desc'             => __( 'Select the field name for mapping the last name in Kit. Note: Kit lacks a default last name field; a custom field must be created in your account first.', 'glue-link' ),
 				'type'             => 'text',
 				'default'          => '',
 				'field_class'      => 'ts_autocomplete',
-				'field_attributes' => array(
-					'data-wp-prefix'   => 'GlueLink',
-					'data-wp-action'   => self::$prefix . '_kit_search',
-					'data-wp-nonce'    => wp_create_nonce( self::$prefix . '_kit_search' ),
-					'data-wp-endpoint' => 'custom_fields',
-					'data-ts-config'   => wp_json_encode(
-						array(
-							'maxItems' => 1,
-						)
-					),
-				),
+				'field_attributes' => self::get_kit_search_field_attributes( 'custom_fields', array( 'maxItems' => 1 ) ),
 			),
-			'custom_fields' => array(
+			'custom_fields'   => array(
 				'id'      => 'custom_fields',
 				'name'    => __( 'Custom Fields', 'glue-link' ),
 				'desc'    => '',
@@ -470,7 +430,7 @@ class Settings {
 				'default' => array(),
 				'fields'  => array(
 					array(
-						'id'      => 'name',
+						'id'      => 'local_name',
 						'name'    => __( 'Field Local Name', 'glue-link' ),
 						'desc'    => __( 'Enter the name of your field that will be used locally in the database on this site.', 'glue-link' ),
 						'type'    => 'text',
@@ -495,6 +455,30 @@ class Settings {
 		 * @param array $settings Subscribers settings array
 		 */
 		return apply_filters( 'glue_link_settings_subscribers', $settings );
+	}
+
+	/**
+	 * Get common field attributes for Kit search fields
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $endpoint   The endpoint to search ('forms', 'tags', 'custom_fields').
+	 * @param array  $ts_config  Optional TypeScript configuration.
+	 * @return array Field attributes array
+	 */
+	private static function get_kit_search_field_attributes( string $endpoint, array $ts_config = array() ): array {
+		$attributes = array(
+			'data-wp-prefix'   => 'GlueLink',
+			'data-wp-action'   => self::$prefix . '_kit_search',
+			'data-wp-nonce'    => wp_create_nonce( self::$prefix . '_kit_search' ),
+			'data-wp-endpoint' => $endpoint,
+		);
+
+		if ( ! empty( $ts_config ) ) {
+			$attributes['data-ts-config'] = wp_json_encode( $ts_config );
+		}
+
+		return $attributes;
 	}
 
 	/**

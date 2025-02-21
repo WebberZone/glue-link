@@ -19,11 +19,21 @@ class Webhook_Handler {
 	/**
 	 * Plugin configurations.
 	 *
-	 * @var array{
-	 *     secret_key: string,
-	 *     free_form_id: int,
-	 *     premium_form_id: int
-	 * }[]
+	 * @var array {
+	 *     Array of plugin configurations indexed by plugin ID.
+	 *
+	 *     @type array $plugin_id {
+	 *         Configuration for a specific plugin.
+	 *
+	 *         @type string $slug         Plugin slug.
+	 *         @type string $public_key   Public key for the plugin.
+	 *         @type string $secret_key   Secret key for the plugin.
+	 *         @type int    $free_form_ids Form ID for free subscribers.
+	 *         @type int    $free_tag_ids  Tag ID for free subscribers.
+	 *         @type int    $paid_form_ids Form ID for paid subscribers.
+	 *         @type int    $paid_tag_ids  Tag ID for paid subscribers.
+	 *     }
+	 * }
 	 */
 	private $plugin_configs;
 
@@ -46,9 +56,23 @@ class Webhook_Handler {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array<string, mixed> $plugin_configs Plugin configurations array indexed by plugin ID.
-	 * @param Kit_API              $api           ConvertKit API instance.
-	 * @param Database             $database      Database instance.
+	 * @param array    $plugin_configs {
+	 *        Plugin configurations array indexed by plugin ID.
+	 *
+	 *     @type array $plugin_id {
+	 *         Configuration for a specific plugin.
+	 *
+	 *         @type string $slug         Plugin slug.
+	 *         @type string $public_key   Public key for the plugin.
+	 *         @type string $secret_key   Secret key for the plugin.
+	 *         @type int    $free_form_ids Form ID for free subscribers.
+	 *         @type int    $free_tag_ids  Tag ID for free subscribers.
+	 *         @type int    $paid_form_ids Form ID for paid subscribers.
+	 *         @type int    $paid_tag_ids  Tag ID for paid subscribers.
+	 *     }
+	 * }
+	 * @param Kit_API  $api      ConvertKit API instance.
+	 * @param Database $database Database instance.
 	 */
 	public function __construct( array $plugin_configs, Kit_API $api, Database $database ) {
 		$this->plugin_configs = $plugin_configs;
@@ -112,8 +136,9 @@ class Webhook_Handler {
 		}
 
 		// Verify the signature.
-		$signature = $request->get_header( 'x-signature' );
-		$hash      = hash_hmac( 'sha256', $input, $this->plugin_configs[ $plugin_id ]['secret_key'] );
+		$signature     = $request->get_header( 'x-signature' );
+		$plugin_config = $this->plugin_configs[ $plugin_id ];
+		$hash          = hash_hmac( 'sha256', $input, $plugin_config['secret_key'] );
 
 		if ( ! hash_equals( $hash, $signature ) ) {
 			return new \WP_Error( 'invalid_signature', 'Invalid signature' );
@@ -143,45 +168,79 @@ class Webhook_Handler {
 		$plugin_id = $fs_event->plugin_id;
 		$user      = $fs_event->objects->user;
 
-		// Prepare user data for ConvertKit.
+		// Exit if plugin ID is not within the plugin configs.
+		if ( ! isset( $this->plugin_configs[ $plugin_id ] ) ) {
+			return new \WP_Error( 'invalid_plugin_id', 'Plugin ID not found in configuration' );
+		}
+
+		// Prepare user data for Kit.
 		$email      = $user->email;
 		$first_name = ( 0 === strcasecmp( $user->first, 'Admin' ) ) ? '' : $user->first;
 		$last_name  = ( 0 === strcasecmp( $user->last, 'Admin' ) ) ? '' : $user->last;
-		$fields     = array(
-			'last_name' => $last_name, // TODO: Map the correct lastname field.
-		);
-		$tags       = array(); // TODO: Get tags.
-		$forms      = array(); // TODO: Get forms.
+
+		$fields = array();
+
+		$last_name_field = Options_API::get_option( 'last_name_field' );
+		if ( $last_name_field ) {
+			$fields[ $last_name_field ] = $last_name;
+		}
+		$custom_fields = Options_API::get_option( 'custom_fields' );
+		if ( $custom_fields ) {
+			foreach ( $custom_fields as $custom_field ) {
+				$fields[ $custom_field['remote_name'] ] = $user->{$custom_field['local_name']} ?? '';
+			}
+		}
+
+		// Select the form ID.
+		$forms         = array();
+		$kit_form_id   = Options_API::get_option( 'kit_form_id' );
+		$plugin_config = $this->plugin_configs[ $plugin_id ];
+		$free_form_ids = $plugin_config['free_form_ids'] ?? $kit_form_id;
+		$free_form_ids = wp_parse_list( $free_form_ids );
+		$paid_form_ids = $plugin_config['paid_form_ids'] ?? $kit_form_id;
+		$paid_form_ids = wp_parse_list( $paid_form_ids );
+
+		// Select the tag IDs.
+		$tags         = array();
+		$kit_tag_id   = Options_API::get_option( 'kit_tag_id' );
+		$free_tag_ids = $plugin_config['free_tag_ids'] ?? $kit_tag_id;
+		$free_tag_ids = wp_parse_list( $free_tag_ids );
+		$paid_tag_ids = $plugin_config['paid_tag_ids'] ?? $kit_tag_id;
+		$paid_tag_ids = wp_parse_list( $paid_tag_ids );
 
 		// Handle different event types.
 		switch ( $fs_event->type ) {
 			case 'install.installed':
 				// Subscribe to free form/sequence.
-				$result = $this->api->subscribe_to_form(
-					(int) $this->plugin_configs[ $plugin_id ]['free_form_id'],
-					$email,
-					$first_name,
-					$fields,
-					$tags
-				);
+				foreach ( $free_form_ids as $free_form_id ) {
+					$result = $this->api->subscribe_to_form(
+						(int) $free_form_id,
+						$email,
+						$first_name,
+						$fields,
+						$free_tag_ids
+					);
+				}
 				break;
 
 			case 'license.created':
-				// Subscribe to premium form/sequence.
-				$result = $this->api->subscribe_to_form(
-					(int) $this->plugin_configs[ $plugin_id ]['premium_form_id'],
-					$email,
-					$first_name,
-					$fields,
-					$tags
-				);
+				// Subscribe to paid form/sequence.
+				foreach ( $paid_form_ids as $paid_form_id ) {
+					$result = $this->api->subscribe_to_form(
+						(int) $paid_form_id,
+						$email,
+						$first_name,
+						$fields,
+						$paid_tag_ids
+					);
+				}
 				break;
 
 			default:
 				return new \WP_REST_Response( array( 'message' => 'Event type not handled' ), 200 );
 		}
 
-		if ( is_wp_error( $result ) ) {
+		if ( isset( $result ) && is_wp_error( $result ) ) {
 			// Log the error using WordPress debug log if enabled.
 			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -211,7 +270,7 @@ class Webhook_Handler {
 			$subscriber->id = $existing_sub->id;
 			$result         = $database->update_subscriber( $subscriber );
 		} else {
-			$result = $database->insert_subscriber( $subscriber );
+			$result = $database->add_subscriber( $subscriber );
 		}
 
 		if ( is_wp_error( $result ) ) {
