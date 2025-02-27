@@ -232,13 +232,30 @@ class Settings {
 	 */
 	public static function settings_freemius(): array {
 		$settings = array(
-			'freemius' => array(
+			'freemius'              => array(
 				'id'   => 'freemius',
 				'name' => __( 'Freemius', 'glue-link' ),
 				'desc' => __( 'Configure your Freemius plugins in this tab by entering required identifiers and keys. Plugin name, ID, public and secret keys are mandatory. Form and tags are optional and default to settings in the Kit tab if left blank.', 'glue-link' ),
 				'type' => 'header',
 			),
-			'plugins'  => array(
+			'webhook_endpoint_type' => array(
+				'id'      => 'webhook_endpoint_type',
+				'name'    => __( 'Webhook Endpoint Type', 'glue-link' ),
+				'desc'    => __( 'Select the method for registering the webhook endpoint. REST API is recommended for better security and standardization. For Query Variable, use: yourdomain.com/?glue_webhook', 'glue-link' ),
+				'type'    => 'select',
+				'options' => array(
+					'rest'  => __( 'REST API', 'glue-link' ),
+					'query' => __( 'Query Variable', 'glue-link' ),
+				),
+				'default' => 'rest',
+			),
+			'webhook_url'           => array(
+				'id'   => 'webhook_url',
+				'name' => __( 'Webhook URL', 'glue-link' ),
+				'desc' => self::get_webhook_url(),
+				'type' => 'header',
+			),
+			'plugins'               => array(
 				'id'                => 'plugins',
 				'name'              => __( 'Freemius Plugins', 'glue-link' ),
 				'desc'              => '',
@@ -1030,5 +1047,32 @@ class Settings {
 			'<button type="button" name="wp_ajax_glue_link_refresh_cache" id="wp_ajax_glue_link_refresh_cache" class="button button-secondary glue_link_cache_clear" aria-label="%1$s">%1$s</button>',
 			esc_html__( 'Clear cache', 'glue-link' )
 		);
+	}
+
+	/**
+	 * Get the webhook URL.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return string The webhook URL.
+	 */
+	private static function get_webhook_url(): string {
+		$endpoint_type = Options_API::get_option( 'webhook_endpoint_type', 'rest' );
+
+		if ( 'rest' === $endpoint_type ) {
+			$webhook_url = home_url( '/wp-json/glue-link/v1/webhook' );
+		} else {
+			$webhook_url = add_query_arg( 'glue_webhook', '1', home_url() );
+		}
+
+		$string = sprintf(
+			'<div class="webhook-url-container">' .
+			'<p>' . esc_html__( 'Copy the following URL to your Freemius dashboard:', 'glue-link' ) . '</p>' .
+			'<p><code>' . esc_url( $webhook_url ) . '</code></p>' .
+			'<p class="description">' . esc_html__( 'This URL is based on your selected webhook endpoint type.', 'glue-link' ) . '</p>' .
+			'</div>'
+		);
+
+		return $string;
 	}
 }
