@@ -6,7 +6,9 @@
  * @since 1.0.0
  */
 
-namespace WebberZone\FreemKit;
+namespace WebberZone\FreemKit\Kit;
+
+use WebberZone\FreemKit\Options_API;
 
 /**
  * Class Kit_Settings

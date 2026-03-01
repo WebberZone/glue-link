@@ -7,6 +7,8 @@
 
 namespace WebberZone\FreemKit;
 
+use WebberZone\FreemKit\Kit\Kit_API;
+
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }

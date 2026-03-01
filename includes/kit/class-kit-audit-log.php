@@ -5,7 +5,7 @@
  * @package WebberZone\FreemKit
  */
 
-namespace WebberZone\FreemKit;
+namespace WebberZone\FreemKit\Kit;
 
 if ( ! defined( 'WPINC' ) ) {
 	die;

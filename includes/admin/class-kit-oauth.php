@@ -8,9 +8,9 @@
 
 namespace WebberZone\FreemKit\Admin;
 
-use WebberZone\FreemKit\Kit_API;
-use WebberZone\FreemKit\Kit_Audit_Log;
-use WebberZone\FreemKit\Kit_Settings;
+use WebberZone\FreemKit\Kit\Kit_API;
+use WebberZone\FreemKit\Kit\Kit_Audit_Log;
+use WebberZone\FreemKit\Kit\Kit_Settings;
 use WebberZone\FreemKit\Util\Hook_Registry;
 
 /**
@@ -81,6 +81,7 @@ class Kit_OAuth {
 		$result             = $api->get_access_token( $authorization_code );
 
 		if ( is_wp_error( $result ) ) {
+			/* translators: %s: Error message */
 			Kit_Audit_Log::add( 'oauth_connect_failed', array( 'error' => $result->get_error_message() ), 'warning' );
 			Admin::add_notice( sprintf( esc_html__( 'Kit OAuth failed: %s', 'freemkit' ), $result->get_error_message() ), 'notice-error' );
 			wp_safe_redirect( $this->get_settings_url() );

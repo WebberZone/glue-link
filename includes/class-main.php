@@ -8,6 +8,8 @@
 namespace WebberZone\FreemKit;
 
 use WebberZone\FreemKit\Util\Hook_Registry;
+use WebberZone\FreemKit\Kit\Kit_Credential_Hooks;
+use WebberZone\FreemKit\Kit\Kit_Settings;
 
 if ( ! defined( 'WPINC' ) ) {
 	die;
