@@ -514,7 +514,7 @@ class Settings {
 	 */
 	public static function get_kit_search_field_attributes( string $endpoint, array $ts_config = array() ): array {
 		$attributes = array(
-			'data-wp-prefix'   => 'FreemKit',
+			'data-wp-prefix'   => self::$prefix,
 			'data-wp-action'   => self::$prefix . '_kit_search',
 			'data-wp-nonce'    => wp_create_nonce( self::$prefix . '_kit_search' ),
 			'data-wp-endpoint' => $endpoint,
@@ -691,9 +691,9 @@ class Settings {
 		// Tom Select variables.
 			wp_localize_script(
 				'wz-' . self::$prefix . '-tom-select-init',
-				'FreemKitTomSelectSettings',
+				self::$prefix . 'TomSelectSettings',
 				array(
-					'prefix'          => 'FreemKit',
+					'prefix'          => self::$prefix,
 					'nonce'           => wp_create_nonce( self::$prefix . '_kit_search' ),
 					'action'          => self::$prefix . '_kit_search',
 					'endpoint'        => '',

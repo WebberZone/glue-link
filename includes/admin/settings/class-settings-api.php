@@ -495,13 +495,6 @@ class Settings_API {
 			true
 		);
 		wp_register_script(
-			'wz-' . $this->prefix . '-taxonomy-suggest',
-			plugins_url( 'js/taxonomy-suggest' . $minimize . '.js', __FILE__ ),
-			array( 'jquery' ),
-			self::VERSION,
-			true
-		);
-		wp_register_script(
 			'wz-' . $this->prefix . '-media-selector',
 			plugins_url( 'js/media-selector' . $minimize . '.js', __FILE__ ),
 			array( 'jquery' ),
@@ -583,7 +576,6 @@ class Settings_API {
 
 		wp_enqueue_script( "wz-{$prefix}-admin" );
 		wp_enqueue_script( "wz-{$prefix}-codemirror" );
-		wp_enqueue_script( "wz-{$prefix}-taxonomy-suggest" );
 		wp_enqueue_script( "wz-{$prefix}-media-selector" );
 
 		// Enqueue Tom Select.
@@ -591,8 +583,6 @@ class Settings_API {
 		wp_enqueue_script( "wz-{$prefix}-tom-select" );
 
 		$defaults = array(
-			'action'   => $prefix . '_taxonomy_search_tom_select',
-			'nonce'    => wp_create_nonce( $prefix . '_taxonomy_search_tom_select' ),
 			'endpoint' => 'category',
 			'strings'  => array(
 				'no_results' => 'No results found for "%s"',

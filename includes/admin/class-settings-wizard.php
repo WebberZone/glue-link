@@ -403,9 +403,9 @@ class Settings_Wizard extends Settings_Wizard_API {
 
 		wp_localize_script(
 			'wz-' . $this->prefix . '-tom-select-init',
-			'FreemKitTomSelectSettings',
+			"{$this->prefix}TomSelectSettings",
 			array(
-				'prefix'          => 'FreemKit',
+				'prefix'          => $this->prefix,
 				'nonce'           => wp_create_nonce( $this->prefix . '_kit_search' ),
 				'action'          => $this->prefix . '_kit_search',
 				'endpoint'        => '',
