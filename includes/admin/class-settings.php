@@ -42,7 +42,7 @@ class Settings {
 	 *
 	 * @var string Prefix.
 	 */
-	public static $prefix;
+	public static $prefix = 'freemkit';
 
 	/**
 	 * Settings Key.
