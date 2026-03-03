@@ -483,7 +483,7 @@ class Settings_API {
 		wp_register_script(
 			'wz-' . $this->prefix . '-admin',
 			plugins_url( 'js/settings-admin-scripts' . $minimize . '.js', __FILE__ ),
-			array( 'jquery' ),
+			array( 'jquery', 'wp-color-picker', 'jquery-ui-tabs' ),
 			self::VERSION,
 			true
 		);
@@ -497,14 +497,14 @@ class Settings_API {
 		wp_register_script(
 			'wz-' . $this->prefix . '-media-selector',
 			plugins_url( 'js/media-selector' . $minimize . '.js', __FILE__ ),
-			array( 'jquery' ),
+			array( 'jquery', 'media-editor', 'media-views' ),
 			self::VERSION,
 			true
 		);
 		wp_register_style(
 			'wz-' . $this->prefix . '-admin',
 			plugins_url( 'css/admin-style' . $minimize . '.css', __FILE__ ),
-			array(),
+			array( 'wp-color-picker' ),
 			self::VERSION
 		);
 
@@ -556,13 +556,7 @@ class Settings_API {
 	 */
 	public static function enqueue_scripts_styles( $prefix, $args = array() ) {
 
-		wp_enqueue_style( 'wp-color-picker' );
-
 		wp_enqueue_media();
-		wp_enqueue_script( 'wp-color-picker' );
-		wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'jquery-ui-autocomplete' );
-		wp_enqueue_script( 'jquery-ui-tabs' );
 
 		wp_enqueue_code_editor(
 			array(
