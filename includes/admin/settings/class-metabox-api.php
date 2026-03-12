@@ -2,7 +2,7 @@
 /**
  * Class to display and save a Metabox.
  *
- * @package WebberZone\Better_External_Links
+ * @package WebberZone\FreemKit
  */
 
 namespace WebberZone\FreemKit\Admin\Settings;
