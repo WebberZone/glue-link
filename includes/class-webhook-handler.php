@@ -155,7 +155,7 @@ class Webhook_Handler {
 		$free_tag_ids  = $this->resolve_list_config( $plugin_config, 'free_tag_ids', $kit_tag_id );
 		$paid_tag_ids  = $this->resolve_list_config( $plugin_config, 'paid_tag_ids', $kit_tag_id );
 
-		$default_free_event_types = array( 'install.installed' );
+		$default_free_event_types = array( 'user.marketing.opted_in' );
 		$default_paid_event_types = array( 'license.created' );
 
 		$free_event_types = $this->resolve_list_config( $plugin_config, 'free_event_types', '', apply_filters( 'freemkit_default_free_event_types', $default_free_event_types, $plugin_config ) );

@@ -70,7 +70,7 @@ class Database {
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$subscribers_sql = "CREATE TABLE IF NOT EXISTS {$this->table_name} (
+		$subscribers_sql = "CREATE TABLE {$this->table_name} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			email varchar(100) NOT NULL,
 			first_name varchar(50) DEFAULT '',
@@ -96,7 +96,7 @@ class Database {
 			KEY kit_status (kit_status)
 		) {$charset_collate};";
 
-		$events_sql = "CREATE TABLE IF NOT EXISTS {$this->events_table_name} (
+		$events_sql = "CREATE TABLE {$this->events_table_name} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			subscriber_id bigint(20) unsigned NOT NULL,
 			plugin_id varchar(50) NOT NULL DEFAULT '',

@@ -377,7 +377,7 @@ class Settings {
 						'name'             => __( 'Free Trigger Events', 'freemkit' ),
 						'desc'             => __( 'Choose Freemius webhook event(s) that should add users to the Free form/tag mapping.', 'freemkit' ),
 						'type'             => 'text',
-						'default'          => 'install.installed',
+						'default'          => 'user.marketing.opted_in',
 						'size'             => 'large',
 						'field_class'      => 'ts_autocomplete',
 						'field_attributes' => self::get_kit_search_field_attributes( 'freemius_events', array( 'create' => true ) ),
