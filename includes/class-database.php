@@ -81,6 +81,8 @@ class Database {
 			freemius_created datetime DEFAULT NULL,
 			is_verified tinyint(1) NOT NULL DEFAULT 0,
 			email_status varchar(20) NOT NULL DEFAULT '',
+			kit_status varchar(20) NOT NULL DEFAULT '',
+			notes text DEFAULT NULL,
 			meta longtext DEFAULT NULL,
 			created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			modified datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -90,7 +92,8 @@ class Database {
 			KEY marketing (marketing),
 			KEY freemius_user_id (freemius_user_id),
 			KEY is_verified (is_verified),
-			KEY email_status (email_status)
+			KEY email_status (email_status),
+			KEY kit_status (kit_status)
 		) {$charset_collate};";
 
 		$events_sql = "CREATE TABLE IF NOT EXISTS {$this->events_table_name} (
@@ -406,6 +409,10 @@ class Database {
 			$update_parts[] = 'marketing = VALUES(marketing)';
 		}
 
+		if ( isset( $data['data']['kit_status'] ) ) {
+			$update_parts[] = 'kit_status = VALUES(kit_status)';
+		}
+
 		$update_parts[] = 'modified = CURRENT_TIMESTAMP';
 
 		$sql = sprintf(
@@ -567,6 +574,15 @@ class Database {
 			$data['email_status'] = $email_status;
 			$format[]             = '%s';
 		}
+
+		$kit_status = sanitize_text_field( $subscriber->kit_status );
+		if ( '' !== $kit_status ) {
+			$data['kit_status'] = $kit_status;
+			$format[]           = '%s';
+		}
+
+		$data['notes'] = sanitize_textarea_field( $subscriber->notes );
+		$format[]      = '%s';
 
 		$meta = $subscriber->meta;
 		if ( is_array( $meta ) && ! empty( $meta ) ) {

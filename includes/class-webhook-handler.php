@@ -421,6 +421,13 @@ class Webhook_Handler {
 			);
 		}
 
+		// Unsubscribe from Kit.
+		$unsubscribe_result = $this->api->unsubscribe_subscriber( $email );
+		if ( is_wp_error( $unsubscribe_result ) && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( sprintf( '[FreemKit] Kit unsubscribe error: %s', $unsubscribe_result->get_error_message() ) );
+		}
+
 		$subscriber = new Subscriber(
 			array(
 				'email'      => $email,
@@ -428,6 +435,7 @@ class Webhook_Handler {
 				'last_name'  => $last_name,
 				'status'     => 'opted_out',
 				'marketing'  => 0,
+				'kit_status' => is_wp_error( $unsubscribe_result ) ? '' : 'cancelled',
 			)
 		);
 
@@ -457,13 +465,6 @@ class Webhook_Handler {
 		if ( is_wp_error( $event_result ) && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( sprintf( '[FreemKit] Event insert error during marketing opt-out: %s', $event_result->get_error_message() ) );
-		}
-
-		// Unsubscribe from Kit.
-		$unsubscribe_result = $this->api->unsubscribe_subscriber( $email );
-		if ( is_wp_error( $unsubscribe_result ) && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( sprintf( '[FreemKit] Kit unsubscribe error: %s', $unsubscribe_result->get_error_message() ) );
 		}
 
 		return array(
@@ -533,13 +534,19 @@ class Webhook_Handler {
 	 * @return array|\WP_Error
 	 */
 	public function process_marketing_optin( string $email, string $first_name, string $last_name, string $plugin_id, array $plugin_config, int $freemius_user_id, string $event_type ) {
+		// A subscriber who has left Kit stays gone. Kit offers no way to reverse an
+		// unsubscribe, and that is their decision to make, not ours to route around.
+		$kit_state = $this->api->get_subscriber_state( $email );
+		$has_left  = ! is_wp_error( $kit_state ) && '' !== $kit_state && 'active' !== $kit_state;
+
 		$subscriber = new Subscriber(
 			array(
 				'email'      => $email,
 				'first_name' => $first_name,
 				'last_name'  => $last_name,
-				'status'     => 'active',
+				'status'     => $has_left ? 'kit_unsubscribed' : 'active',
 				'marketing'  => 1,
+				'kit_status' => ( ! is_wp_error( $kit_state ) ) ? $kit_state : '',
 			)
 		);
 
@@ -559,10 +566,6 @@ class Webhook_Handler {
 		$active_form_ids = $this->resolve_list_config( $plugin_config, $type_key . '_form_ids', Options_API::get_option( 'kit_form_id' ) );
 		$active_tag_ids  = $this->resolve_list_config( $plugin_config, $type_key . '_tag_ids', Options_API::get_option( 'kit_tag_id' ) );
 
-		// A subscriber who has left Kit stays gone. Kit offers no way to reverse an
-		// unsubscribe, and that is their decision to make, not ours to route around.
-		$kit_state  = $this->api->get_subscriber_state( $email );
-		$has_left   = ! is_wp_error( $kit_state ) && '' !== $kit_state && 'active' !== $kit_state;
 		$api_result = null;
 
 		if ( $has_left ) {

@@ -165,6 +165,13 @@ class Subscriber_Form {
 				'size'             => 'large',
 				'field_attributes' => array( 'readonly' => 'readonly' ),
 			),
+			array(
+				'id'      => 'notes',
+				'name'    => __( 'Notes', 'freemkit' ),
+				'desc'    => __( 'Freeform notes about this subscriber. Not sent to Kit.', 'freemkit' ),
+				'type'    => 'textarea',
+				'default' => '',
+			),
 		);
 	}
 
@@ -268,6 +275,8 @@ class Subscriber_Form {
 				return $this->subscriber->is_verified ? __( 'Yes', 'freemkit' ) : __( 'No', 'freemkit' );
 			case 'email_status':
 				return $this->subscriber->email_status;
+			case 'notes':
+				return $this->subscriber->notes;
 			default:
 				return $default_value;
 		}
@@ -348,6 +357,7 @@ class Subscriber_Form {
 		$last_name     = $settings_sanitize->sanitize_text_field( $posted['last_name'] ?? '' );
 		$status        = $settings_sanitize->sanitize_text_field( $posted['status'] ?? 'active' );
 		$marketing     = $settings_sanitize->sanitize_checkbox_field( $posted['marketing'] ?? -1 );
+		$notes         = $settings_sanitize->sanitize_textarea_field( $posted['notes'] ?? '' );
 
 		if ( empty( $email ) ) {
 			$this->redirect_with_message( 'error', __( 'Email address is required.', 'freemkit' ) );
@@ -360,6 +370,7 @@ class Subscriber_Form {
 			'last_name'  => $last_name,
 			'status'     => $status,
 			'marketing'  => $marketing,
+			'notes'      => $notes,
 		);
 
 		if ( $subscriber_id > 0 ) {

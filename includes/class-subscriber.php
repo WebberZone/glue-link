@@ -96,6 +96,22 @@ class Subscriber {
 	public string $email_status = '';
 
 	/**
+	 * Subscriber state as last reported by Kit (e.g. active, cancelled, bounced).
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	public string $kit_status = '';
+
+	/**
+	 * Freeform admin notes about this subscriber.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	public string $notes = '';
+
+	/**
 	 * JSON meta / catch-all field.
 	 *
 	 * @since 1.0.0
@@ -206,7 +222,11 @@ class Subscriber {
 					case 'status':
 					case 'freemius_created':
 					case 'email_status':
+					case 'kit_status':
 						$this->$key = sanitize_text_field( $data[ $key ] );
+						break;
+					case 'notes':
+						$this->notes = sanitize_textarea_field( $data[ $key ] );
 						break;
 					case 'meta':
 						$this->meta = $data[ $key ];
