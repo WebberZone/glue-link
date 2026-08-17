@@ -125,6 +125,50 @@ class Settings {
 	}
 
 	/**
+	 * Raw default values for every top-level setting, keyed by option ID.
+	 *
+	 * Single source of truth for field defaults. Deliberately contains no
+	 * translation calls so it is safe to invoke before `init` without triggering a
+	 * "translation loading triggered too early" notice. Field definition methods
+	 * below reference this array instead of duplicating literals.
+	 *
+	 * Only top-level options are listed. The `plugins` repeater's per-row `fields`
+	 * (`name`, `id`, `public_key`, ...) are templates for each repeater row, not
+	 * settings in their own right — `settings_defaults()` does not recurse into
+	 * them either, since it only iterates the top-level entries returned by
+	 * `get_registered_settings()`.
+	 *
+	 * Values are pre-normalised: checkbox defaults use 1/0 rather than true/false
+	 * so that they match what `settings_defaults()` produces after its
+	 * `(int) (bool)` cast. This array is deliberately unfiltered — the
+	 * `freemkit_settings_defaults` filter is applied by the consumers
+	 * (`settings_defaults()` and `Options_API::get_default_option()`) so that it
+	 * runs exactly once on each path.
+	 *
+	 * @since 1.2.2
+	 *
+	 * @return array Raw default values keyed by option ID.
+	 */
+	public static function get_defaults(): array {
+		return array(
+			// Kit.
+			'kit_form_id'               => '',
+			'kit_tag_id'                => '',
+
+			// Freemius.
+			'webhook_endpoint_type'     => 'rest',
+			'plugins'                   => array(),
+
+			// Subscribers.
+			'respect_marketing_optout'  => 1,
+			'unsubscribe_event_types'   => 'user.marketing.opted_out',
+			'kit_unsubscribe_on_delete' => 0,
+			'sync_name_on_change'       => 1,
+			'enable_audit_log'          => 1,
+		);
+	}
+
+	/**
 	 * Array containing the settings' sections.
 	 *
 	 * @since 1.0.0
@@ -246,6 +290,7 @@ class Settings {
 	 * @return array Freemius settings array
 	 */
 	public static function settings_freemius(): array {
+		$defaults = self::get_defaults();
 		$settings = array(
 			'freemius'              => array(
 				'id'   => 'freemius',
@@ -262,7 +307,7 @@ class Settings {
 					'rest'  => __( 'REST API', 'freemkit' ),
 					'query' => __( 'Query Variable', 'freemkit' ),
 				),
-				'default' => 'rest',
+				'default' => $defaults['webhook_endpoint_type'],
 			),
 			'webhook_url'           => array(
 				'id'   => 'webhook_url',
@@ -278,7 +323,7 @@ class Settings {
 				'add_button_text'   => __( 'Add Plugin', 'freemkit' ),
 				'new_item_text'     => __( 'New Plugin', 'freemkit' ),
 				'live_update_field' => 'name',
-				'default'           => array(),
+				'default'           => $defaults['plugins'],
 				'section'           => 'freemius',
 				'fields'            => array(
 					array(
@@ -399,6 +444,7 @@ class Settings {
 	 * @return array Kit settings array
 	 */
 	public static function settings_kit(): array {
+		$defaults = self::get_defaults();
 		$settings = array(
 			'kit'              => array(
 				'id'   => 'kit',
@@ -417,7 +463,7 @@ class Settings {
 				'name'             => __( 'Global Form ID', 'freemkit' ),
 				'desc'             => __( 'Select the Kit form to add subscribers to. Start typing to search. This is used if the form ID is not set for a specific plugin.', 'freemkit' ),
 				'type'             => 'text',
-				'default'          => '',
+				'default'          => $defaults['kit_form_id'],
 				'size'             => 'large',
 				'field_class'      => 'ts_autocomplete',
 				'field_attributes' => self::get_kit_search_field_attributes( 'forms' ),
@@ -427,7 +473,7 @@ class Settings {
 				'name'             => __( 'Tag ID', 'freemkit' ),
 				'desc'             => __( 'Select the Kit tag to apply (optional). Start typing to search. This is used if the tag ID is not set for a specific plugin.', 'freemkit' ),
 				'type'             => 'text',
-				'default'          => '',
+				'default'          => $defaults['kit_tag_id'],
 				'size'             => 'large',
 				'field_class'      => 'ts_autocomplete',
 				'field_attributes' => self::get_kit_search_field_attributes( 'tags' ),
@@ -452,6 +498,7 @@ class Settings {
 	 * @return array Subscribers settings array
 	 */
 	public static function settings_subscribers(): array {
+		$defaults = self::get_defaults();
 		$settings = array(
 			'subscribers'               => array(
 				'id'   => 'subscribers',
@@ -464,14 +511,14 @@ class Settings {
 				'name'    => __( 'Respect Marketing Opt-out', 'freemkit' ),
 				'desc'    => __( 'When enabled, users who opt out of marketing on Freemius will be unsubscribed from Kit and blocked from future subscriptions. Configure the Freemius Listener for every plugin to send the user.marketing.opted_out event.', 'freemkit' ),
 				'type'    => 'checkbox',
-				'default' => 1,
+				'default' => $defaults['respect_marketing_optout'],
 			),
 			'unsubscribe_event_types'   => array(
 				'id'               => 'unsubscribe_event_types',
 				'name'             => __( 'Unsubscribe Trigger Events', 'freemkit' ),
 				'desc'             => __( 'Freemius events that will trigger an unsubscribe from Kit. Defaults to user.marketing.opted_out.', 'freemkit' ),
 				'type'             => 'text',
-				'default'          => 'user.marketing.opted_out',
+				'default'          => $defaults['unsubscribe_event_types'],
 				'size'             => 'large',
 				'field_class'      => 'ts_autocomplete',
 				'field_attributes' => self::get_kit_search_field_attributes( 'freemius_events', array( 'create' => true ) ),
@@ -481,21 +528,21 @@ class Settings {
 				'name'    => __( 'Unsubscribe from Kit on Delete', 'freemkit' ),
 				'desc'    => __( 'When enabled, deleting a subscriber will also unsubscribe them from Kit.', 'freemkit' ),
 				'type'    => 'checkbox',
-				'default' => 0,
+				'default' => $defaults['kit_unsubscribe_on_delete'],
 			),
 			'sync_name_on_change'       => array(
 				'id'      => 'sync_name_on_change',
 				'name'    => __( 'Sync Name on Change', 'freemkit' ),
 				'desc'    => __( "When enabled, a user.name.changed Freemius event will update the subscriber\'s name in Kit and the local database.", 'freemkit' ),
 				'type'    => 'checkbox',
-				'default' => 1,
+				'default' => $defaults['sync_name_on_change'],
 			),
 			'enable_audit_log'          => array(
 				'id'      => 'enable_audit_log',
 				'name'    => __( 'Enable Audit Log', 'freemkit' ),
 				'desc'    => __( 'Log webhook events, Kit API calls, and credential changes to the audit log. Disable on high-traffic sites if the overhead is a concern.', 'freemkit' ),
 				'type'    => 'checkbox',
-				'default' => 1,
+				'default' => $defaults['enable_audit_log'],
 			),
 		);
 
@@ -1346,9 +1393,12 @@ class Settings {
 			// Loop through each setting in the section.
 			foreach ( $section_settings as $setting ) {
 				if ( isset( $setting['id'] ) ) {
-					// When checkbox is set to true, set this to 1.
-					if ( 'checkbox' === $setting['type'] && ! empty( $setting['options'] ) ) {
-						$defaults[ $setting['id'] ] = 1;
+					// Cast to 1/0 rather than gating on a non-existent 'options' key: these
+					// are plain toggle checkboxes, not option groups, so every one of them
+					// used to fall through to the empty-string branch below regardless of
+					// its declared default.
+					if ( 'checkbox' === $setting['type'] ) {
+						$defaults[ $setting['id'] ] = isset( $setting['default'] ) ? (int) (bool) $setting['default'] : 0;
 					} elseif ( in_array( $setting['type'], array( 'textarea', 'css', 'html', 'text', 'url', 'csv', 'color', 'numbercsv', 'postids', 'posttypes', 'number', 'wysiwyg', 'file', 'password' ), true ) && isset( $setting['default'] ) ) {
 						$defaults[ $setting['id'] ] = $setting['default'];
 					} elseif ( in_array( $setting['type'], array( 'multicheck', 'radio', 'select', 'radiodesc', 'thumbsizes', 'repeater' ), true ) && isset( $setting['default'] ) ) {

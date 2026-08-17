@@ -116,6 +116,7 @@ Yes! The plugin provides various WordPress filters and actions for developers to
 
 = 1.0.0 =
 * Initial release
+* Fixed every toggle setting (Respect Marketing Opt-out, Unsubscribe from Kit on Delete, Sync Name on Change, Enable Audit Log) resolving to an empty value instead of its declared default whenever the setting had not yet been saved, which left opt-out protection, name syncing and audit logging effectively disabled by default.
 
 == Upgrade Notice ==
 
