@@ -5,6 +5,10 @@ parameters:
     scanFiles:
         - freemkit.php
         - uninstall.php
+        - vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+        - vendor/php-stubs/wp-cli-stubs/wp-cli-commands-stubs.php
+        - vendor/php-stubs/wp-cli-stubs/wp-cli-i18n-stubs.php
+        - vendor/php-stubs/wp-cli-stubs/wp-cli-tools-stubs.php
     scanDirectories:
         - includes
         - vendor/convertkit/convertkit-wordpress-libraries/src

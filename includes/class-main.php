@@ -49,6 +49,13 @@ class Main {
 	public Language_Handler $language;
 
 	/**
+	 * WP-CLI command manager.
+	 *
+	 * @var CLI\CLI_Manager|null
+	 */
+	public ?CLI\CLI_Manager $cli;
+
+	/**
 	 * Returns the singleton instance.
 	 *
 	 * @return Main
@@ -68,6 +75,7 @@ class Main {
 		$this->runtime          = new Runtime();
 		$this->credential_hooks = new Kit_Credential_Hooks();
 		$this->language         = new Language_Handler();
+		$this->cli              = defined( 'WP_CLI' ) && WP_CLI ? new CLI\CLI_Manager() : null;
 		$this->hooks();
 	}
 

@@ -685,12 +685,13 @@ class Database {
 	 * @param array $args {
 	 *     Optional. Arguments to retrieve subscribers.
 	 *
-	 *     @type string       $search   Search term.
-	 *     @type string|array $status   Single status or array of statuses.
-	 *     @type int         $per_page  Number of subscribers per page.
-	 *     @type int         $page      Page number.
-	 *     @type string      $orderby   Column to order by.
-	 *     @type string      $order     Order direction.
+	 *     @type string       $search    Search term.
+	 *     @type string|array $status    Single status or array of statuses.
+	 *     @type int|null     $marketing Marketing consent flag.
+	 *     @type int          $per_page  Number of subscribers per page. 0 returns all rows.
+	 *     @type int          $page      Page number. Ignored when $per_page is 0.
+	 *     @type string       $orderby   Column to order by.
+	 *     @type string       $order     Order direction.
 	 * }
 	 * @return Subscriber[] Array of Subscriber objects.
 	 */
@@ -698,12 +699,13 @@ class Database {
 		global $wpdb;
 
 		$defaults = array(
-			'search'   => '',
-			'status'   => '',
-			'per_page' => 10,
-			'page'     => 1,
-			'orderby'  => 'id',
-			'order'    => 'DESC',
+			'search'    => '',
+			'status'    => '',
+			'marketing' => null,
+			'per_page'  => 10,
+			'page'      => 1,
+			'orderby'   => 'id',
+			'order'     => 'DESC',
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -729,6 +731,11 @@ class Database {
 			}
 		}
 
+		if ( null !== $args['marketing'] ) {
+			$where[]  = 'marketing = %d';
+			$values[] = (int) $args['marketing'];
+		}
+
 		// Default WHERE clause if no conditions.
 		if ( empty( $where ) ) {
 			$where_clause = '';
@@ -736,8 +743,8 @@ class Database {
 			$where_clause = 'WHERE ' . implode( ' AND ', $where );
 		}
 
-		// Calculate offset.
-		$offset = ( $args['page'] - 1 ) * $args['per_page'];
+		$per_page = max( 0, (int) $args['per_page'] );
+		$page     = max( 1, (int) $args['page'] );
 
 		$table = $this->get_table_name();
 
@@ -750,14 +757,18 @@ class Database {
 			$sql .= " ORDER BY {$orderby}";
 		}
 
-		// Add LIMIT and OFFSET.
-		$sql .= ' LIMIT %d OFFSET %d';
+		// Add LIMIT and OFFSET, unless all rows were requested.
+		if ( $per_page > 0 ) {
+			$sql   .= ' LIMIT %d OFFSET %d';
+			$values = array_merge( $values, array( $per_page, ( $page - 1 ) * $per_page ) );
+		}
 
-		// Merge LIMIT and OFFSET values.
-		$values = array_merge( $values, array( $args['per_page'], $offset ) );
+		if ( ! empty( $values ) ) {
+			$sql = $wpdb->prepare( $sql, $values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
+		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching
-		$results = $wpdb->get_results( $wpdb->prepare( $sql, $values ) );
+		$results = $wpdb->get_results( $sql );
 
 		// Convert results to Subscriber objects.
 		$items = array();
