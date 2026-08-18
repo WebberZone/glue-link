@@ -127,23 +127,12 @@ class Settings {
 	/**
 	 * Raw default values for every top-level setting, keyed by option ID.
 	 *
-	 * Single source of truth for field defaults. Deliberately contains no
-	 * translation calls so it is safe to invoke before `init` without triggering a
-	 * "translation loading triggered too early" notice. Field definition methods
-	 * below reference this array instead of duplicating literals.
-	 *
-	 * Only top-level options are listed. The `plugins` repeater's per-row `fields`
-	 * (`name`, `id`, `public_key`, ...) are templates for each repeater row, not
-	 * settings in their own right — `settings_defaults()` does not recurse into
-	 * them either, since it only iterates the top-level entries returned by
-	 * `get_registered_settings()`.
-	 *
-	 * Values are pre-normalised: checkbox defaults use 1/0 rather than true/false
-	 * so that they match what `settings_defaults()` produces after its
-	 * `(int) (bool)` cast. This array is deliberately unfiltered — the
-	 * `freemkit_settings_defaults` filter is applied by the consumers
-	 * (`settings_defaults()` and `Options_API::get_default_option()`) so that it
-	 * runs exactly once on each path.
+	 * Deliberately contains no translation calls, so it is safe to invoke before `init`.
+	 * Only top-level options are listed — the `plugins` repeater's per-row fields (`name`,
+	 * `id`, `public_key`, ...) are row templates, not settings in their own right, and
+	 * `settings_defaults()` doesn't recurse into them either. Values are pre-normalised
+	 * (checkboxes as 1/0) and the array is intentionally unfiltered — consumers apply the
+	 * `freemkit_settings_defaults` filter themselves.
 	 *
 	 * @since 1.2.2
 	 *

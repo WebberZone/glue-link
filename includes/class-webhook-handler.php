@@ -514,13 +514,12 @@ class Webhook_Handler {
 	 * Clears the opt-out flag, sets the subscriber status back to active, and restores
 	 * the Kit form and tag membership that the matching opt-out removed.
 	 *
-	 * A subscriber who has already left Kit is not pulled back in. Kit's v4 API has no
-	 * endpoint that reverses an unsubscribe, and that is treated as a decision to
-	 * respect rather than an obstacle to work around: when the subscriber's Kit state
-	 * is anything other than 'active', no Kit write is attempted at all. The opt-in is
-	 * still recorded locally and logged as 'kit_reactivation_skipped' so the gap
-	 * between Freemius and Kit is visible. Re-subscribing is then the subscriber's own
-	 * action to take, through a Kit form.
+	 * A subscriber who has already left Kit is not pulled back in — Kit's v4 API has no
+	 * endpoint that reverses an unsubscribe, and that's treated as a decision to respect
+	 * rather than an obstacle to work around. When the subscriber's Kit state is anything
+	 * other than 'active', no Kit write is attempted; the opt-in is still recorded locally
+	 * and logged as 'kit_reactivation_skipped' so the gap between Freemius and Kit stays
+	 * visible, and re-subscribing is left to the subscriber via a Kit form.
 	 *
 	 * @since 1.0.0
 	 *
@@ -534,8 +533,7 @@ class Webhook_Handler {
 	 * @return array|\WP_Error
 	 */
 	public function process_marketing_optin( string $email, string $first_name, string $last_name, string $plugin_id, array $plugin_config, int $freemius_user_id, string $event_type ) {
-		// A subscriber who has left Kit stays gone. Kit offers no way to reverse an
-		// unsubscribe, and that is their decision to make, not ours to route around.
+		// A subscriber who has left Kit stays gone — Kit offers no way to reverse an unsubscribe.
 		$kit_state = $this->api->get_subscriber_state( $email );
 		$has_left  = ! is_wp_error( $kit_state ) && '' !== $kit_state && 'active' !== $kit_state;
 
