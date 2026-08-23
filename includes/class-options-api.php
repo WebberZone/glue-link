@@ -1,14 +1,18 @@
 <?php
 /**
- * FreemKit Options API.
+ * Options API.
  *
- * @since 1.0.0
+ * Settings read/write layer that sits in front of the Settings API. Reads are cached
+ * per request and keyed by blog ID so a `switch_to_blog()` mid-request is honoured.
  *
  * @package WebberZone\FreemKit
  */
 
 namespace WebberZone\FreemKit;
 
+use WebberZone\FreemKit\Admin;
+
+// If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
@@ -63,9 +67,8 @@ class Options_API {
 	/**
 	 * Flush the per-request settings cache.
 	 *
-	 * Call after any write that bypasses this class (e.g. a direct
-	 * `update_option()` call) so a subsequent read in the same request sees the
-	 * new value. Pass a blog ID to flush a single blog, or nothing to flush all.
+	 * Call after any write so a subsequent read in the same request sees the new
+	 * value. Pass a blog ID to flush a single blog, or nothing to flush all.
 	 *
 	 * @since 1.2.2
 	 *
@@ -84,22 +87,22 @@ class Options_API {
 	/**
 	 * Get Settings.
 	 *
-	 * Retrieves all plugin settings
+	 * Retrieves all plugin settings.
 	 *
-	 * @since  1.0.0
-	 * @return array FreemKit settings
+	 * @since 1.0.0
+	 *
+	 * @return array Settings array.
 	 */
 	public static function get_settings() {
 		$cache_key = self::cache_key();
 
 		if ( ! array_key_exists( $cache_key, self::$settings_cache ) ) {
 			/**
-			 * Settings array
-			 *
-			 * Retrieves all plugin settings
+			 * Filters the settings array.
 			 *
 			 * @since 1.0.0
-			 * @param array $settings Settings array
+			 *
+			 * @param array $settings Settings array.
 			 */
 			self::$settings_cache[ $cache_key ] = apply_filters(
 				self::FILTER_PREFIX . '_get_settings',
@@ -111,27 +114,38 @@ class Options_API {
 	}
 
 	/**
-	 * Get an option
+	 * Get the saved settings merged over the defaults.
 	 *
-	 * Looks to see if the specified setting exists, returns default if not
+	 * Newly registered settings that are not yet present in the saved option still
+	 * resolve to a value.
+	 *
+	 * @since 1.2.2
+	 *
+	 * @return array Settings merged with defaults.
+	 */
+	public static function get_settings_with_defaults() {
+		return array_merge( self::get_settings_defaults(), (array) self::get_settings() );
+	}
+
+	/**
+	 * Get an option.
+	 *
+	 * Looks to see if the specified setting exists, returns the default if not.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $key           Option to fetch.
-	 * @param mixed  $default_value Default option.
+	 * @param  string $key           Option to fetch.
+	 * @param  mixed  $default_value Default value if the option is missing.
 	 * @return mixed
 	 */
 	public static function get_option( $key = '', $default_value = null ) {
 		$settings = self::get_settings();
 
-		$value = isset( $settings[ $key ] ) ? $settings[ $key ] : null;
-
-		if ( is_null( $value ) ) {
-			if ( is_null( $default_value ) ) {
-				$default_value = self::get_default_option( $key );
-			}
-			$value = $default_value;
+		if ( null === $default_value ) {
+			$default_value = self::get_default_option( $key );
 		}
+
+		$value = $settings[ $key ] ?? $default_value;
 
 		/**
 		 * Filter the value for the option being fetched.
@@ -157,74 +171,126 @@ class Options_API {
 	}
 
 	/**
-	 * Update an option
+	 * Get an option from a specific blog in a multisite network.
 	 *
-	 * Updates a setting value in both the db and the global variable.
-	 * Warning: Passing in an empty, false or null string value will remove
-	 *        the key from the settings array.
+	 * @since 1.2.2
+	 *
+	 * @param  int    $blog_id       Blog ID to fetch the option from.
+	 * @param  string $key           Key of the option to fetch.
+	 * @param  mixed  $default_value Default value to fetch if the option is missing.
+	 * @return mixed
+	 */
+	public static function get_blog_option( $blog_id, $key = '', $default_value = false ) {
+		$blog_id = (int) $blog_id;
+
+		if ( empty( $blog_id ) ) {
+			$blog_id = get_current_blog_id();
+		}
+
+		if ( get_current_blog_id() === $blog_id || ! is_multisite() ) {
+			$value = self::get_option( $key, $default_value );
+		} else {
+			switch_to_blog( $blog_id );
+			$value = self::get_option( $key, $default_value );
+			restore_current_blog();
+		}
+
+		/**
+		 * Filters a blog option value.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param mixed  $value   The option value.
+		 * @param int    $blog_id Blog ID.
+		 * @param string $key     Option key.
+		 */
+		return apply_filters( self::FILTER_PREFIX . "_blog_option_{$key}", $value, $blog_id, $key );
+	}
+
+	/**
+	 * Update an option.
+	 *
+	 * Warning: passing an empty, false or null value will store that value; use
+	 * `delete_option()` to remove the key entirely.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param  string               $key   The Key to update.
-	 * @param  string|bool|int|null $value The value to set the key to.
-	 * @return boolean True if updated, false if not.
+	 * @param  string          $key   The key to update.
+	 * @param  string|bool|int $value The value to set the key to.
+	 * @return bool True if updated, false if not.
 	 */
 	public static function update_option( $key = '', $value = false ) {
-		// If no key, exit.
 		if ( empty( $key ) ) {
 			return false;
 		}
 
-		// If no value, delete.
-		if ( is_null( $value ) ) {
-			return self::delete_option( $key );
-		}
+		$options = get_option( self::SETTINGS_OPTION, array() );
 
-		// First let's grab the current settings.
-		$options = self::get_settings();
-
-		// Let's let devs alter that value coming in.
+		/**
+		 * Filters the value before it is saved.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param mixed  $value Value of the option.
+		 * @param string $key   Name of the option.
+		 */
 		$value = apply_filters( self::FILTER_PREFIX . '_update_option', $value, $key );
 
-		// Next let's try to update the value.
 		$options[ $key ] = $value;
 		$did_update      = update_option( self::SETTINGS_OPTION, $options );
 
-		// If it updated, let's update the static variable.
 		if ( $did_update ) {
-			self::$settings_cache[ self::cache_key() ][ $key ] = $value;
+			self::$settings_cache[ self::cache_key() ] = $options;
 		}
 
 		return $did_update;
 	}
 
 	/**
-	 * Remove an option
+	 * Update all settings at once.
 	 *
-	 * Removes a FreemKit setting value in both the db and the static variable.
+	 * @since 1.2.2
+	 *
+	 * @param  array $settings Settings array to save.
+	 * @param  bool  $merge    Whether to merge with existing settings. Default true.
+	 * @param  bool  $autoload Whether to autoload the option. Default true.
+	 * @return bool True if updated, false otherwise.
+	 */
+	public static function update_settings( array $settings, bool $merge = true, bool $autoload = true ): bool {
+		if ( $merge ) {
+			$settings = array_merge( (array) self::get_settings(), $settings );
+		}
+
+		$did_update = update_option( self::SETTINGS_OPTION, $settings, $autoload );
+
+		if ( $did_update ) {
+			self::$settings_cache[ self::cache_key() ] = $settings;
+		}
+
+		return $did_update;
+	}
+
+	/**
+	 * Remove an option.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param  string $key The Key to delete.
-	 * @return boolean True if updated, false if not.
+	 * @param  string $key The key to delete.
+	 * @return bool True if updated, false if not.
 	 */
 	public static function delete_option( $key = '' ) {
-		// If no key, exit.
 		if ( empty( $key ) ) {
 			return false;
 		}
 
-		// First let's grab the current settings.
-		$options = self::get_settings();
+		$options = get_option( self::SETTINGS_OPTION, array() );
 
-		// Next let's try to update the value.
 		if ( isset( $options[ $key ] ) ) {
 			unset( $options[ $key ] );
 		}
 
 		$did_update = update_option( self::SETTINGS_OPTION, $options );
 
-		// If it updated, let's update the static variable.
 		if ( $did_update ) {
 			self::$settings_cache[ self::cache_key() ] = $options;
 		}
@@ -235,25 +301,30 @@ class Options_API {
 	/**
 	 * Default settings.
 	 *
+	 * Built from the registered settings, so this runs the full field definitions
+	 * and is only safe to call after `init`. Use `get_default_option()` for a
+	 * single key when the read may happen earlier.
+	 *
 	 * @since 1.0.0
 	 *
-	 * @return array Default settings
+	 * @return array Default settings.
 	 */
 	public static function get_settings_defaults() {
 		return Admin\Settings::settings_defaults();
 	}
 
 	/**
-	 * Get the default option for a specific key
+	 * Get the default option for a specific key.
 	 *
-	 * Reads `Admin\Settings::get_defaults()` rather than `get_settings_defaults()`:
-	 * the former is a flat array with no translation calls, so resolving one
-	 * default no longer builds every field definition and is safe before `init`.
+	 * Reads from `Admin\Settings::get_defaults()` rather than
+	 * `settings_defaults()`: the former is a flat array with no translation calls,
+	 * so this is safe before `init` and avoids building every field definition to
+	 * resolve one key.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param  string $key Key of the option to fetch.
-	 * @return mixed
+	 * @return mixed Default value, or false if the key is not registered.
 	 */
 	public static function get_default_option( $key = '' ) {
 		/**
@@ -261,7 +332,7 @@ class Options_API {
 		 *
 		 * Mirrors the filter applied in `Admin\Settings::settings_defaults()` so that
 		 * this translation-free path honours the same hook. `get_defaults()` itself is
-		 * unfiltered, so the filter runs exactly once on each path.
+		 * deliberately unfiltered, so the filter runs exactly once on each path.
 		 *
 		 * @since 1.0.0
 		 *
@@ -280,21 +351,53 @@ class Options_API {
 	}
 
 	/**
-	 * Reset settings.
+	 * Get the registered settings types, keyed by option ID.
+	 *
+	 * @since 1.2.2
+	 *
+	 * @return array Setting types keyed by option ID.
+	 */
+	public static function get_registered_settings_types() {
+		$options = array();
+
+		foreach ( Admin\Settings::get_registered_settings() as $tab => $settings ) {
+			foreach ( $settings as $option ) {
+				if ( ! isset( $option['id'] ) ) {
+					continue;
+				}
+				$options[ $option['id'] ] = $option['type'] ?? '';
+			}
+		}
+
+		/**
+		 * Filters the registered settings types.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array $options Settings types keyed by option ID.
+		 */
+		return apply_filters( self::FILTER_PREFIX . '_get_settings_types', $options );
+	}
+
+	/**
+	 * Reset settings to their defaults.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @return void
+	 * @return bool True if updated, false if not.
 	 */
-	public static function reset_settings() {
-		delete_option( self::SETTINGS_OPTION );
+	public static function reset_settings(): bool {
+		$defaults   = self::get_settings_defaults();
+		$did_update = update_option( self::SETTINGS_OPTION, $defaults );
 
-		// The static cache is not invalidated by the delete_option() call above,
-		// so a get_option() later in the same request would otherwise keep
-		// returning the pre-reset values.
-		self::$settings_cache[ self::cache_key() ] = array();
+		if ( $did_update ) {
+			self::$settings_cache[ self::cache_key() ] = $defaults;
+		}
+
+		return $did_update;
 	}
 
+	// wz-shared-utils:end — everything below is FreemKit-specific.
 
 	/**
 	 * Encrypts an API key using either OpenSSL or Sodium, if available.

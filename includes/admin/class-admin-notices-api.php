@@ -36,7 +36,7 @@ class Admin_Notices_API {
 	/**
 	 * Constructor class.
 	 *
-	 * @param string $prefix Plugin prefix for AJAX actions, nonces, and storage keys. Default 'wzkb'.
+	 * @param string $prefix Plugin prefix for AJAX actions, nonces, and storage keys. Default 'freemkit'.
 	 */
 	public function __construct( string $prefix = 'freemkit' ) {
 		$this->prefix = $prefix;
