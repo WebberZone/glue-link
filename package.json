@@ -36,6 +36,6 @@
     "dependencies": {
         "@wordpress/icons": "^15.4.0",
         "clsx": "^2.1.1",
-        "uuid": "^14.0.1"
+        "uuid": "^14.0.2"
     }
 }
