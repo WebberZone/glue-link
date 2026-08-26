@@ -88,7 +88,7 @@ The following events can be used in free or paid event type fields.
 | `install.plan.changed` | User's plan changed |
 | `install.plan.downgraded` | User's plan downgraded |
 | `install.trial.started` | Trial started on a specific install |
-| `install.trial.cancelled` | Trial cancelled |
+| `install.trial.cancelled` | Trial canceled |
 | `install.trial.expired` | Trial expired without converting |
 
 ### Trial Events
@@ -106,11 +106,11 @@ The following events can be used in free or paid event type fields.
 | `payment.refund` | Payment refunded |
 | `plan.lifetime.purchase` | Lifetime plan purchased |
 | `subscription.created` | Subscription created |
-| `subscription.cancelled` | Subscription cancelled |
+| `subscription.cancelled` | Subscription canceled |
 | `subscription.renewal.failed.last` | Final subscription renewal attempt failed |
 | `license.created` | License issued |
 | `license.activated` | License activated |
-| `license.cancelled` | License cancelled |
+| `license.cancelled` | License canceled |
 | `license.expired` | License expired |
 
 ### User Events
