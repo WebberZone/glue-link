@@ -48,6 +48,14 @@ pnpm run zip               # Create plugin zip via wp-scripts
 ncu -u && pnpm install   # Update dependencies to latest and reinstall
 ```
 
+## Distribution zip vendor invariant
+
+`build-zip.sh` excludes all of `vendor/` in its rsync block, then re-adds only the directories it names. `freemkit.php` loads five ConvertKit library files from `vendor/convertkit/` with unguarded `require_once` calls at plugin load, so a zip built without that directory **fatals on activation**. The script exits 1 when it is missing — never warn and continue, which ships a silently broken zip.
+
+ConvertKit is bundled outside Composer (it is not in `composer.json`) and git-tracked via the `.gitignore` whitelist, so it cannot go missing on a clean clone. `vendor/freemius` is staged but not yet required by any code, so it remains a warning rather than an error.
+
+Verify a change by building the zip and checking the files exist in the extracted tree, not by reading the script.
+
 ## Architecture
 
 ### Entry Point & Bootstrap
