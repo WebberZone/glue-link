@@ -1,17 +1,13 @@
 # AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+Guidance for AI coding agents working in this repository.
 
 ## Response Rules
 
 - Return only the changed function or section, not the full file
 - No explanation unless asked
-- No suggestions outside the scope of what was asked
+- No out-of-scope suggestions
 - Skip preamble and trailing summaries
-
-## Release Notes
-
-- In `readme.txt`, prefix any Pro-only changelog bullet with `[Pro]`
 
 ## Links
 
@@ -21,7 +17,7 @@ Internal tooling plugin — not distributed on WordPress.org or webberzone.com/p
 
 ## Plugin Overview
 
-FreemKit is a WordPress plugin (v1.0.0) that bridges Freemius software licensing with Kit (formerly ConvertKit) email marketing. It receives Freemius webhook events and subscribes customers to Kit forms/tags based on whether they are free or paid users. Namespace: `WebberZone\FreemKit`. Prefix: `freemkit_`. Text domain: `freemkit`. Requires WordPress 6.6+, PHP 7.4+.
+FreemKit (WordPress plugin, v1.0.0) bridges Freemius software licensing with Kit (formerly ConvertKit) email marketing: receives Freemius webhook events and subscribes customers to Kit forms/tags based on free vs paid status. Namespace: `WebberZone\FreemKit`. Prefix: `freemkit_`. Text domain: `freemkit`. Requires WordPress 6.6+, PHP 7.4+.
 
 ## Commands
 
@@ -62,27 +58,27 @@ ncu -u && pnpm install   # Update dependencies to latest and reinstall
 
 ### Core Components
 
-- **`Main`** (`includes/class-main.php`) — Singleton. Instantiates `Runtime`, `Kit_Credential_Hooks`, and `Language_Handler`; registers hooks via `Hook_Registry`. Registers the activation hook (`Main::activate` → `Runtime::activate`).
-- **`Runtime`** (`includes/class-runtime.php`) — Instantiates `Database` in the constructor. On `init`, creates `Kit_API` and `Webhook_Handler`. Creates the `Admin` object when in admin context (via `init_admin`). Builds per-plugin configs from the `plugins` settings array.
-- **`Webhook_Handler`** (`includes/class-webhook-handler.php`) — Core logic. Registers a REST endpoint at `freemkit/v1/webhook` (or a query-var fallback). Validates HMAC-SHA256 signatures (`x-signature` header) and webhook freshness (15-minute window). Queues events as WP transients and processes them asynchronously via WP-Cron (`freemkit_process_webhook_event`). Includes deduplication via `freemkit_webhook_seen_*` transients, and linear-backoff retry (default max 3 attempts, delay capped at 5 minutes; filterable via `freemkit_webhook_max_retries`).
-- **`Database`** (`includes/class-database.php`) — Manages two custom tables: `{prefix}freemkit_subscribers` (subscriber records) and `{prefix}freemkit_subscriber_events` (per-plugin webhook interactions). Uses object caching and `dbDelta()` for schema.
-- **`Options_API`** (`includes/class-options-api.php`) — All settings stored as a single `freemkit_settings` array in `wp_options`. Access via `Options_API::get_option($key)` / `Options_API::get_settings()`. Sensitive keys (access/refresh tokens) are encrypted at rest using AES-256-CBC (OpenSSL) or libsodium.
-- **`Audit_Log`** (`includes/class-audit-log.php`) — Plugin-wide audit log stored as a non-autoloaded `freemkit_audit_log` WP option. Entries capped at 200 (filterable via `freemkit_audit_log_max_entries`); email addresses are masked. Toggleable via the `enable_audit_log` setting.
-- **`Freemius`** (`includes/class-freemius.php`) — Static helpers: normalizes event types, validates Freemius API credentials against the product endpoint, and returns the list of Freemius event choices for selectors.
-- **`Freemius_API_Client`** (`includes/class-freemius-api-client.php`) — Fetches users and licenses from the Freemius REST API for a single product (used by the Sync admin).
-- **`Subscriber`** / **`Subscriber_Event`** (`includes/class-subscriber.php`, `includes/class-subscriber-event.php`) — Value objects representing a subscriber and a per-plugin webhook event.
-- **`Language_Handler`** (`includes/class-language-handler.php`) — Loads the `freemkit` textdomain on `init`.
+- **`Main`** (`includes/class-main.php`) — Singleton. Instantiates `Runtime`, `Kit_Credential_Hooks`, `Language_Handler`; registers hooks via `Hook_Registry`. Registers activation hook (`Main::activate` → `Runtime::activate`).
+- **`Runtime`** (`includes/class-runtime.php`) — Instantiates `Database` in constructor. On `init`, creates `Kit_API` and `Webhook_Handler`. Creates `Admin` in admin context (via `init_admin`). Builds per-plugin configs from the `plugins` settings array.
+- **`Webhook_Handler`** (`includes/class-webhook-handler.php`) — Core logic. Registers REST endpoint at `freemkit/v1/webhook` (or query-var fallback). Validates HMAC-SHA256 signatures (`x-signature` header) and webhook freshness (15-minute window). Queues events as WP transients, processes asynchronously via WP-Cron (`freemkit_process_webhook_event`). Deduplicates via `freemkit_webhook_seen_*` transients; linear-backoff retry (default max 3 attempts, delay capped at 5 minutes; filterable via `freemkit_webhook_max_retries`).
+- **`Database`** (`includes/class-database.php`) — Manages two custom tables: `{prefix}freemkit_subscribers` (subscriber records), `{prefix}freemkit_subscriber_events` (per-plugin webhook interactions). Uses object caching and `dbDelta()` for schema.
+- **`Options_API`** (`includes/class-options-api.php`) — All settings stored as a single `freemkit_settings` array in `wp_options`; access via `Options_API::get_option($key)` / `get_settings()`. Sensitive keys (access/refresh tokens) encrypted at rest via AES-256-CBC (OpenSSL) or libsodium.
+- **`Audit_Log`** (`includes/class-audit-log.php`) — Plugin-wide audit log stored as a non-autoloaded `freemkit_audit_log` WP option. Entries capped at 200 (filterable via `freemkit_audit_log_max_entries`); email addresses masked. Toggleable via `enable_audit_log` setting.
+- **`Freemius`** (`includes/class-freemius.php`) — Static helpers: normalizes event types, validates Freemius API credentials against the product endpoint, returns Freemius event choices for selectors.
+- **`Freemius_API_Client`** (`includes/class-freemius-api-client.php`) — Fetches users/licenses from the Freemius REST API for a single product (used by Sync admin).
+- **`Subscriber`** / **`Subscriber_Event`** (`includes/class-subscriber.php`, `includes/class-subscriber-event.php`) — Value objects for a subscriber and a per-plugin webhook event.
+- **`Language_Handler`** (`includes/class-language-handler.php`) — Loads `freemkit` textdomain on `init`.
 
 ### Kit Integration (`includes/kit/`)
 
 - **`Kit_API`** — Extends `ConvertKit_API_V4` to subscribe users to forms and apply tags.
-- **`Kit_Settings`** — Manages OAuth tokens (`kit_access_token`, `kit_refresh_token`, `kit_token_expires`). Falls back to the official Kit WordPress plugin's stored credentials (`_wp_convertkit_settings`) if available. Schedules token refresh via the `freemkit_refresh_token` cron hook.
+- **`Kit_Settings`** — Manages OAuth tokens (`kit_access_token`, `kit_refresh_token`, `kit_token_expires`); falls back to the official Kit WordPress plugin's stored credentials (`_wp_convertkit_settings`) if available. Schedules token refresh via `freemkit_refresh_token` cron hook.
 - **`Kit_Credential_Hooks`** — Listens for `freemkit_api_get_access_token` / `freemkit_api_refresh_token` / `convertkit_api_access_token_invalid` actions to keep tokens in sync. Deletes local credentials after 3 invalid-token failures within a 10-minute window.
 
 ### Admin (`includes/admin/`)
 
-- **`Admin`** — Admin loader. Instantiates `Settings`, `Settings_Wizard`, `Subscribers_List`, `Sync_Admin`, `Admin_Notices_API`, and `Admin_Banner`.
-- **`Settings`** / **`Settings_Wizard`** — Settings pages; wizard is shown on first activation. Settings include: global Kit form/tag defaults, per-plugin overrides (free and paid form IDs, tag IDs, event types), custom field mappings, webhook endpoint type (REST vs query-var).
+- **`Admin`** — Admin loader. Instantiates `Settings`, `Settings_Wizard`, `Subscribers_List`, `Sync_Admin`, `Admin_Notices_API`, `Admin_Banner`.
+- **`Settings`** / **`Settings_Wizard`** — Settings pages; wizard shown on first activation. Settings: global Kit form/tag defaults, per-plugin overrides (free/paid form IDs, tag IDs, event types), custom field mappings, webhook endpoint type (REST vs query-var).
 - **`Kit_OAuth`** — OAuth flow for connecting to Kit.
 - **`Subscribers_List`** / **`Subscribers_List_Table`** — Admin screen displaying the local `freemkit_subscribers` table.
 - **`Subscriber_Form`** — Add/edit subscriber form.
@@ -96,19 +92,19 @@ ncu -u && pnpm install   # Update dependencies to latest and reinstall
 
 ## Key Patterns
 
-- **Webhook event routing:** Freemius sends a `type` field (e.g. `install.installed`, `license.created`). Default free events: `['install.installed']`; default paid events: `['license.created']`. Both can be overridden per-plugin config or via `freemkit_default_free_event_types` / `freemkit_default_paid_event_types` filters. Unsubscribe events (default `user.marketing.opted_out`) trigger Kit unsubscription; `user.marketing.opted_in` re-subscribes; `user.name.changed` updates the subscriber name.
-- **Per-plugin config:** The settings store a `plugins` array, each entry keyed by Freemius plugin ID, with separate free/paid form IDs, tag IDs, and event types. Falls back to global kit form/tag settings when per-plugin values are empty.
+- **Webhook event routing:** Freemius sends a `type` field (e.g. `install.installed`, `license.created`). Default free events: `['install.installed']`; default paid events: `['license.created']`. Overridable per-plugin config or via `freemkit_default_free_event_types` / `freemkit_default_paid_event_types` filters. Unsubscribe events (default `user.marketing.opted_out`) trigger Kit unsubscription; `user.marketing.opted_in` re-subscribes; `user.name.changed` updates subscriber name.
+- **Per-plugin config:** Settings store a `plugins` array, each entry keyed by Freemius plugin ID, with separate free/paid form IDs, tag IDs, event types. Falls back to global kit form/tag settings when per-plugin values are empty.
 - **Settings access:** Always use `Options_API::get_option($key)` rather than reading `freemkit_settings` directly.
-- **Hook registration:** Use `Hook_Registry::add_action()` / `Hook_Registry::add_filter()` rather than WordPress functions directly.
-- **Async processing:** Webhooks are never processed synchronously (except when WP-Cron is disabled or scheduling fails). Always go through `queue_webhook_event()` → `process_queued_webhook()`.
+- **Hook registration:** Use `Hook_Registry::add_action()` / `add_filter()` rather than WordPress functions directly.
+- **Async processing:** Webhooks never processed synchronously (except when WP-Cron is disabled or scheduling fails). Always go through `queue_webhook_event()` → `process_queued_webhook()`.
 
 ## Shared framework files: `@since` convention
 
-The Settings API (`includes/admin/settings/*.php`) and the Admin Banner (`includes/admin/class-admin-banner.php`) are copy-pasted, shared framework files whose canonical source is the `Settings_API` repo. To keep `@since` tags meaningful and stable across syncs, these files follow special rules:
+The Settings API (`includes/admin/settings/*.php`) and Admin Banner (`includes/admin/class-admin-banner.php`) are copy-pasted, shared framework files whose canonical source is the `Settings_API` repo. To keep `@since` tags meaningful and stable across syncs:
 
-- Each file carries **exactly one** `@since` tag, on its **class docblock**, set to the plugin version at which that class was **first introduced into this plugin**. This is per-file (the wizard, metabox and banner classes were generally added later than the core Settings API classes).
+- Each file carries **exactly one** `@since` tag, on its **class docblock**, set to the plugin version at which that class was **first introduced into this plugin** — per-file (wizard, metabox and banner classes were generally added later than the core Settings API classes).
 - **Do not** add `@since` to methods, functions or properties in these files.
-- When syncing/updating these files from another plugin or the canonical `Settings_API` repo, **do not overwrite the class-level `@since`** — it is plugin-specific. Re-apply the values below after any sync.
+- When syncing/updating these files from another plugin or the canonical `Settings_API` repo, **do not overwrite the class-level `@since`** — it's plugin-specific. Re-apply the values below after any sync.
 
 | File | `@since` |
 |---|---|
