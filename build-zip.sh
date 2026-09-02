@@ -56,7 +56,8 @@ if [ -d "vendor/convertkit" ]; then
     mkdir -p "$TEMP_DIR/vendor"
     cp -r vendor/convertkit "$TEMP_DIR/vendor/"
 else
-    echo "Warning: vendor/convertkit directory not found."
+    echo "Error: vendor/convertkit directory not found." >&2
+    exit 1
 fi
 if [ -d "vendor/freemius" ]; then
     mkdir -p "$TEMP_DIR/vendor"
