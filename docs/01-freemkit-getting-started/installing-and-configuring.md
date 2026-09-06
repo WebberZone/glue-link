@@ -1,4 +1,5 @@
 ---
+sections: ["01-freemkit-getting-started"]
 tags: [freemkit,installation]
 ---
 
