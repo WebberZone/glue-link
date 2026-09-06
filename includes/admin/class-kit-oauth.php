@@ -193,7 +193,7 @@ class Kit_OAuth {
 		);
 
 		$tenant_name = get_option( 'blogname', '' );
-		if ( ! is_string( $tenant_name ) || '' === trim( $tenant_name ) ) {
+		if ( ! is_string( $tenant_name ) || '' === trim( $tenant_name, " \t\n\r\0\x0B" ) ) {
 			$site_host   = wp_parse_url( get_site_url(), PHP_URL_HOST );
 			$tenant_name = is_string( $site_host ) ? $site_host : '';
 		}

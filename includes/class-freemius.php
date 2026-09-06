@@ -21,7 +21,7 @@ class Freemius {
 	 * @return string
 	 */
 	public static function normalize_event_type( string $event_type ): string {
-		return strtolower( trim( $event_type ) );
+		return strtolower( trim( $event_type, " \t\n\r\0\x0B" ) );
 	}
 
 	/**
@@ -203,7 +203,7 @@ class Freemius {
 		);
 
 		if ( '' !== $search ) {
-			$query = strtolower( trim( $search ) );
+			$query = strtolower( trim( $search, " \t\n\r\0\x0B" ) );
 			$items = array_values(
 				array_filter(
 					$items,

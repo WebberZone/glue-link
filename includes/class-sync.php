@@ -122,7 +122,7 @@ class Sync {
 			$secret_raw = (string) ( $plugin_fields['secret_key'] ?? '' );
 			$secret_key = Settings_API::decrypt_api_key( $secret_raw );
 			if ( '' === $secret_key ) {
-				$secret_key = trim( $secret_raw );
+				$secret_key = trim( $secret_raw, " \t\n\r\0\x0B" );
 			}
 
 			$plugin_configs[ $plugin_id ] = array(

@@ -277,7 +277,7 @@ class Subscriber {
 	 * @return string Display name.
 	 */
 	public function get_display_name(): string {
-		$display_name = trim( "{$this->first_name} {$this->last_name}" );
+		$display_name = trim( "{$this->first_name} {$this->last_name}", " \n\r\t\v\x00" );
 		return '' !== $display_name ? $display_name : $this->email;
 	}
 

@@ -805,7 +805,7 @@ class Webhook_Handler {
 			}
 		}
 
-		return trim( $value );
+		return trim( $value, " \n\r\t\v\x00" );
 	}
 
 	/**

@@ -844,13 +844,13 @@ class Settings {
 			}
 
 			$fields     = $plugin['fields'];
-			$label      = isset( $fields['name'] ) && '' !== trim( (string) $fields['name'] ) ? trim( (string) $fields['name'] ) : sprintf( 'Row %d', (int) $index + 1 );
-			$plugin_id  = trim( (string) ( $fields['id'] ?? '' ) );
-			$public_key = trim( (string) ( $fields['public_key'] ?? '' ) );
+			$label      = isset( $fields['name'] ) && '' !== trim( (string) $fields['name'], " \t\n\r\0\x0B" ) ? trim( (string) $fields['name'], " \t\n\r\0\x0B" ) : sprintf( 'Row %d', (int) $index + 1 );
+			$plugin_id  = trim( (string) ( $fields['id'] ?? '' ), " \t\n\r\0\x0B" );
+			$public_key = trim( (string) ( $fields['public_key'] ?? '' ), " \t\n\r\0\x0B" );
 			$secret_raw = (string) ( $fields['secret_key'] ?? '' );
 			$secret_key = Settings_API::decrypt_api_key( $secret_raw );
 			if ( '' === $secret_key ) {
-				$secret_key = trim( $secret_raw );
+				$secret_key = trim( $secret_raw, " \t\n\r\0\x0B" );
 			}
 
 			if ( '' === $plugin_id || '' === $public_key || '' === $secret_key ) {
@@ -1047,9 +1047,9 @@ class Settings {
 			wp_send_json_error( (object) array( 'message' => esc_html__( 'You do not have permission to perform this action.', 'freemkit' ) ) );
 		}
 
-		$plugin_id  = isset( $_POST['plugin_id'] ) ? trim( (string) wp_unslash( $_POST['plugin_id'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$public_key = isset( $_POST['public_key'] ) ? trim( (string) wp_unslash( $_POST['public_key'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$secret_key = isset( $_POST['secret_key'] ) ? trim( (string) wp_unslash( $_POST['secret_key'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$plugin_id  = isset( $_POST['plugin_id'] ) ? trim( (string) wp_unslash( $_POST['plugin_id'] ), " \t\n\r\0\x0B" ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$public_key = isset( $_POST['public_key'] ) ? trim( (string) wp_unslash( $_POST['public_key'] ), " \t\n\r\0\x0B" ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$secret_key = isset( $_POST['secret_key'] ) ? trim( (string) wp_unslash( $_POST['secret_key'] ), " \t\n\r\0\x0B" ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$row_id     = isset( $_POST['row_id'] ) ? sanitize_text_field( wp_unslash( $_POST['row_id'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 		// Reject control characters in secret key.
@@ -1229,12 +1229,12 @@ class Settings {
 		}
 
 		if ( ! empty( $search ) ) {
-			$search = trim( strtolower( $search ) );
+			$search = trim( strtolower( $search ), " \t\n\r\0\x0B" );
 			$items  = array_filter(
 				$items,
 				function ( $item ) use ( $search ) {
-					$name = trim( strtolower( (string) $item['name'] ) );
-					$id   = trim( strtolower( (string) $item['id'] ) );
+					$name = trim( strtolower( (string) $item['name'] ), " \t\n\r\0\x0B" );
+					$id   = trim( strtolower( (string) $item['id'] ), " \t\n\r\0\x0B" );
 					return false !== strpos( $name, $search ) || false !== strpos( $id, $search );
 				}
 			);
