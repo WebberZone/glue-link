@@ -1,9 +1,15 @@
 ---
+slug: installing-and-configuring
+title: "Installing and Configuring FreemKit"
+products: [freemkit]
 sections: ["01-freemkit-getting-started"]
-tags: [freemkit,installation]
+tags: [freemkit, installation]
+status: publish
+order: 0
+toc: true
 ---
 
-# Installing and Configuring FreemKit
+[toc]
 
 This guide covers installing FreemKit, connecting your Kit account, and adding your Freemius products.
 

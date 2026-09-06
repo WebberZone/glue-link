@@ -1,9 +1,12 @@
 ---
+slug: hooks-reference
+title: "Hooks Reference"
+products: [freemkit]
 sections: ["03-freemkit-developer-docs"]
-tags: [developer,freemkit,hooks]
+tags: [developer, freemkit, hooks]
+status: publish
+order: 0
 ---
-
-# Hooks Reference
 
 All FreemKit actions and filters are listed here. Hooks follow the `freemkit_` prefix convention. All hooks can be registered using standard WordPress `add_action()` / `add_filter()` calls, or via `Hook_Registry::add_action()` / `Hook_Registry::add_filter()` if extending from within the plugin.
 

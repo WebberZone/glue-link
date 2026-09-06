@@ -1,9 +1,15 @@
 ---
+slug: webhook-lifecycle
+title: "Webhook Lifecycle"
+products: [freemkit]
 sections: ["03-freemkit-developer-docs"]
-tags: [developer,freemkit,webhook]
+tags: [developer, freemkit, webhook]
+status: publish
+order: 0
+toc: true
 ---
 
-# Webhook Lifecycle
+[toc]
 
 This document describes how FreemKit receives, validates, queues, and processes a Freemius webhook event from end to end.
 

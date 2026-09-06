@@ -1,9 +1,15 @@
 ---
+slug: subscribers-screen
+title: "Subscribers Screen"
+products: [freemkit]
 sections: ["01-freemkit-getting-started"]
-tags: [freemkit,subscribers]
+tags: [freemkit, subscribers]
+status: publish
+order: 0
+toc: true
 ---
 
-# Subscribers Screen
+[toc]
 
 The Subscribers screen shows every customer FreemKit has processed. It is a local record — it does not replace your Kit subscriber list, but it lets you see who FreemKit has acted on and when.
 

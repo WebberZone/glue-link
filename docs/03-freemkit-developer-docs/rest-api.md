@@ -1,9 +1,15 @@
 ---
+slug: rest-api
+title: "REST API"
+products: [freemkit]
 sections: ["03-freemkit-developer-docs"]
-tags: [developer,freemkit,rest-api]
+tags: [developer, freemkit, rest-api]
+status: publish
+order: 0
+toc: true
 ---
 
-# REST API
+[toc]
 
 FreemKit exposes one public endpoint: the Freemius webhook receiver. There are no other public REST routes. Internal AJAX actions (Kit search, connection test, key validation) are WordPress admin-only and not documented here.
 

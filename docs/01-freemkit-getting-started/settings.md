@@ -1,9 +1,15 @@
 ---
+slug: settings
+title: "Settings Reference"
+products: [freemkit]
 sections: ["01-freemkit-getting-started"]
-tags: [freemkit,settings]
+tags: [freemkit, settings]
+status: publish
+order: 0
+toc: true
 ---
 
-# Settings Reference
+[toc]
 
 All FreemKit settings are found at **Settings → FreemKit** in the WordPress admin. Settings are organized across three tabs: **Kit**, **Freemius**, and **Subscribers**.
 

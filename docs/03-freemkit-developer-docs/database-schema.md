@@ -1,9 +1,12 @@
 ---
+slug: database-schema
+title: "Database Schema"
+products: [freemkit]
 sections: ["03-freemkit-developer-docs"]
-tags: [database,developer,freemkit]
+tags: [database, developer, freemkit]
+status: publish
+order: 0
 ---
-
-# Database Schema
 
 FreemKit creates two tables on activation, both using the standard WordPress table prefix. The schema version is stored in the `freemkit_db_version` option and migrations run automatically on plugin update.
 

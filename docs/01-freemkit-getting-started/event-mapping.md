@@ -1,9 +1,15 @@
 ---
+slug: event-mapping
+title: "Event Mapping"
+products: [freemkit]
 sections: ["01-freemkit-getting-started"]
-tags: [event-mapping,freemkit]
+tags: [event-mapping, freemkit]
+status: publish
+order: 0
+toc: true
 ---
 
-# Event Mapping
+[toc]
 
 Event mapping tells FreemKit what to do when Freemius sends a webhook. You define which events represent a "free" user, which represent a "paid" user, and which Kit forms and tags each user type should be subscribed to.
 
